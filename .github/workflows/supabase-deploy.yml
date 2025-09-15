@@ -44,7 +44,8 @@ jobs:
         run: |
           # Decrypt env + apply migrations to the correct remote project
           supabase link --project-ref "$PROJECT_REF"
-          supabase db push
+          npx @dotenvx/dotenvx run -f "supabase/$ENV_FILE" -- npx supabase db push
+          npx @dotenvx/dotenvx run -f "supabase/$ENV_FILE" -- npx supabase config push
 
       - name: Deploy ALL Edge Functions
         run: |
@@ -52,3 +53,5 @@ jobs:
           # Add --use-api to avoid Docker if needed
           npx @dotenvx/dotenvx run -f "supabase/$ENV_FILE" -- \
             supabase functions deploy --project-ref "$PROJECT_REF"
+
+
