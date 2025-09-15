@@ -30,3 +30,10 @@ npx @dotenvx/dotenvx set AZURE_OPENAI_KEY "<REPLACE_WITHKEY>" -f supabase/.env
 npx @dotenvx/dotenvx set AZURE_OPENAI_DEPLOYMENT "gpt-4o" -f supabase/.env
 npx @dotenvx/dotenvx set AZURE_OPENAI_API_VERSION "2025-01-01-preview" -f supabase/.env
 npx @dotenvx/dotenvx set ABC "dummy" -f supabase/.env
+
+
+
+npx supabase link --project-ref "$epcgshxoajvqwgrmwduv"
+npx supabase secrets set --env-file supabase/.env.keys
+npx supabase link --project-ref "$dgrnuytifkjzlkpgtjzo"
+npx supabase secrets set --env-file supabase/.env.keys
