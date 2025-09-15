@@ -51,6 +51,8 @@ jobs:
         run: |
           # Deploys every function in supabase/functions to the selected project
           # Add --use-api to avoid Docker if needed
+          supabase link --project-ref "$PROJECT_REF"
+          supabase secrets set --env-file "supabase/$ENV_FILE"
           npx @dotenvx/dotenvx run -f "supabase/$ENV_FILE" -- \
             supabase functions deploy --project-ref "$PROJECT_REF"
 
