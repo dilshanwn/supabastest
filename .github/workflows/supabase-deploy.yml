@@ -1,0 +1,54 @@
+# .github/workflows/supabase-deploy.yml
+name: Supabase Deploy DB & Edge Functions
+
+on:
+  push:
+    branches: [ dev, main ]   # DEV is your development branch; main is production
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      # required for Supabase CLI auth
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Select environment (dev vs prod)
+        id: select
+        run: |
+          if [[ "${GITHUB_REF_NAME}" == "dev" ]]; then
+            echo "ENV_FILE=.env" >> $GITHUB_ENV
+            echo "PROJECT_REF=${{ secrets.DEV_PROJECT_REF }}" >> $GITHUB_ENV
+            # Dotenvx dev key (decrypts .env)
+            echo "DOTENV_PRIVATE_KEY=${{ secrets.DOTENV_PRIVATE_KEY_DEV }}" >> $GITHUB_ENV
+          else
+            echo "ENV_FILE=.env.production" >> $GITHUB_ENV
+            echo "PROJECT_REF=${{ secrets.PROD_PROJECT_REF }}" >> $GITHUB_ENV
+            # Dotenvx prod key (decrypts .env.production)
+            echo "DOTENV_PRIVATE_KEY_PRODUCTION=${{ secrets.DOTENV_PRIVATE_KEY_PRODUCTION }}" >> $GITHUB_ENV
+          fi
+
+      - name: (Optional) Print selected target
+        run: |
+          echo "Target project: $PROJECT_REF"
+          echo "Env file: $ENV_FILE"
+
+      # If you prefer: supabase link --project-ref "$PROJECT_REF"
+      - name: Apply DB migrations to remote
+        run: |
+          # Decrypt env + apply migrations to the correct remote project
+          npx @dotenvx/dotenvx run -f "$ENV_FILE" -- \
+            supabase db push --project-ref "$PROJECT_REF"
+
+      - name: Deploy ALL Edge Functions
+        run: |
+          # Deploys every function in supabase/functions to the selected project
+          # Add --use-api to avoid Docker if needed
+          npx @dotenvx/dotenvx run -f "$ENV_FILE" -- \
+            supabase functions deploy --project-ref "$PROJECT_REF"
